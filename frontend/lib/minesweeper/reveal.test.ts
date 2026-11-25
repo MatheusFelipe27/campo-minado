@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { revealCell } from './reveal';
+import { toggleFlag } from './flag';
 
 function makeBoard() {
   return ['02*20', '03*30', '02*20'].map(line =>
@@ -7,11 +8,30 @@ function makeBoard() {
       hasMine: symbol === '*',
       adjacentMines: symbol === '*' ? 0 : Number(symbol),
       revealed: false,
+      flagged: false,
     })),
   );
 }
 
 describe('revealCell', () => {
+  it.each([0, 2])('ignora clique em célula marcada na coluna %i', column => {
+    const position = { row: 0, column };
+    const marked = toggleFlag(makeBoard(), position);
+    const result = revealCell(marked, position);
+    expect(result.board).toBe(marked);
+    expect(result.hitMine).toBe(false);
+  });
+
+  it('não atravessa um vazio marcado durante a expansão', () => {
+    const corridor = [Array.from({ length: 3 }, () => ({
+      hasMine: false, adjacentMines: 0, revealed: false, flagged: false,
+    }))];
+    const marked = toggleFlag(corridor, { row: 0, column: 1 });
+    const { board } = revealCell(marked, { row: 0, column: 0 });
+    expect(board[0].map(cell => cell.revealed)).toEqual([true, false, false]);
+    expect(board[0][1].flagged).toBe(true);
+  });
+
   it('abre somente o número clicado e preserva o tabuleiro anterior', () => {
     const original = makeBoard();
     const { board, hitMine } = revealCell(original, { row: 1, column: 1 });

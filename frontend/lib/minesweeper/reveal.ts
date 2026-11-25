@@ -4,6 +4,7 @@ export function revealCell(board: Cell[][], position: Position) {
   const { row, column } = position;
   const selected = board[row]?.[column];
   if (!selected) throw new RangeError('Célula fora do tabuleiro');
+  if (selected.flagged) return { board, hitMine: false };
   if (selected.revealed) return { board, hitMine: selected.hasMine };
 
   const next = board.map(line => line.slice());
@@ -18,7 +19,7 @@ export function revealCell(board: Cell[][], position: Position) {
     for (let r = current.row - 1; r <= current.row + 1; r++) {
       for (let c = current.column - 1; c <= current.column + 1; c++) {
         const neighbor = next[r]?.[c];
-        if (!neighbor || neighbor.revealed || neighbor.hasMine) continue;
+        if (!neighbor || neighbor.revealed || neighbor.flagged || neighbor.hasMine) continue;
         next[r][c] = { ...neighbor, revealed: true };
         if (neighbor.adjacentMines === 0) queue.push({ row: r, column: c });
       }
