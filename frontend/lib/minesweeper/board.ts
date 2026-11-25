@@ -18,6 +18,15 @@ export interface Cell {
   flagged: boolean;
 }
 
+export function createEmptyBoard(size: BoardSize): Cell[][] {
+  const { rows, columns } = BOARD_SIZES[size];
+  return Array.from({ length: rows }, () =>
+    Array.from({ length: columns }, () => ({
+      hasMine: false, adjacentMines: 0, revealed: false, flagged: false,
+    })),
+  );
+}
+
 /** Called on the first reveal. Coordinates are zero-based; random returns a value in [0, 1). */
 export function generateBoard(size: BoardSize, firstReveal: Position, random: () => number): Cell[][] {
   const { columns, rows, mines } = BOARD_SIZES[size];
@@ -27,11 +36,7 @@ export function generateBoard(size: BoardSize, firstReveal: Position, random: ()
     throw new RangeError('Primeira célula fora do tabuleiro');
   }
 
-  const board = Array.from({ length: rows }, () =>
-    Array.from({ length: columns }, () => ({
-      hasMine: false, adjacentMines: 0, revealed: false, flagged: false,
-    })),
-  );
+  const board = createEmptyBoard(size);
   const safeIndex = row * columns + column;
   const candidates = Array.from({ length: rows * columns }, (_, index) => index)
     .filter(index => index !== safeIndex);
