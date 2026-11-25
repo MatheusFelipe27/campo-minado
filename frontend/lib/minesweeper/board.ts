@@ -14,6 +14,7 @@ export interface Position {
 export interface Cell {
   hasMine: boolean;
   adjacentMines: number;
+  revealed: boolean;
 }
 
 /** Called on the first reveal. Coordinates are zero-based; random returns a value in [0, 1). */
@@ -26,7 +27,7 @@ export function generateBoard(size: BoardSize, firstReveal: Position, random: ()
   }
 
   const board = Array.from({ length: rows }, () =>
-    Array.from({ length: columns }, () => ({ hasMine: false, adjacentMines: 0 })),
+    Array.from({ length: columns }, () => ({ hasMine: false, adjacentMines: 0, revealed: false })),
   );
   const safeIndex = row * columns + column;
   const candidates = Array.from({ length: rows * columns }, (_, index) => index)
