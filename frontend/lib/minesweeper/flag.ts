@@ -1,4 +1,9 @@
-import type { Cell, Position } from './board';
+import { BOARD_SIZES, type BoardSize, type Cell, type Position } from './board';
+
+export function remainingMines(size: BoardSize, board: Cell[][]): number {
+  const flags = board.flat().filter(cell => cell.flagged).length;
+  return BOARD_SIZES[size].mines - flags;
+}
 
 export function toggleFlag(board: Cell[][], { row, column }: Position): Cell[][] {
   const cell = board[row]?.[column];

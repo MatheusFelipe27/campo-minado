@@ -6,6 +6,7 @@ import { createGame, playMove } from '../../lib/minesweeper/game';
 import styles from './board.module.css';
 import { SizeSelector } from './size-selector';
 import { Timer } from './timer';
+import { remainingMines } from '../../lib/minesweeper/flag';
 
 function cellDisplay(cell: Cell) {
   if (cell.flagged) return { text: '⚑', label: 'com bandeira' };
@@ -27,6 +28,7 @@ export function Board() {
     <section className={styles.panel} aria-label="Tabuleiro de Campo Minado">
       <SizeSelector size={game.size} onChange={size => setGame(createGame(size))} />
       <Timer startedAt={game.startedAt} finishedAt={game.finishedAt} />
+      <p aria-live="polite" aria-atomic="true">Minas restantes: {remainingMines(game.size, game.board)}</p>
       <p>Clique para revelar. Use o botão direito ou a tecla F para marcar e desmarcar bandeiras.</p>
       <div className={styles.field}>
         {game.board.map((line, row) => (
