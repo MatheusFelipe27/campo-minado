@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Cell } from '../../lib/minesweeper/board';
 import { createGame, playMove } from '../../lib/minesweeper/game';
 import styles from './board.module.css';
+import { SizeSelector } from './size-selector';
 
 function cellDisplay(cell: Cell) {
   if (cell.flagged) return { text: '⚑', label: 'com bandeira' };
@@ -23,6 +24,7 @@ export function Board() {
 
   return (
     <section className={styles.panel} aria-label="Tabuleiro de Campo Minado">
+      <SizeSelector size={game.size} onChange={size => setGame(createGame(size))} />
       <p>Clique para revelar. Use o botão direito ou a tecla F para marcar e desmarcar bandeiras.</p>
       <div className={styles.field}>
         {game.board.map((line, row) => (
