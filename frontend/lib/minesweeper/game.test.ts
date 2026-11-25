@@ -1,19 +1,29 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGame, playMove } from './game';
+import { createGame, elapsedSeconds, playMove } from './game';
 
 const first = { type: 'reveal', position: { row: 0, column: 0 } } as const;
 const flag = { type: 'flag', position: { row: 0, column: 1 } } as const;
 const draw = () => 0;
 
 describe('ciclo da partida', () => {
+  it('mede segundos desde a primeira revelação e zera em uma nova partida', () => {
+    const started = playMove(createGame('9x9'), first, draw, 300);
+    const marked = playMove(started, flag, draw, 2500);
+    expect(elapsedSeconds(marked.startedAt, 3299)).toBe(2);
+    expect(elapsedSeconds(marked.startedAt, 3300)).toBe(3);
+    expect(elapsedSeconds(createGame('16x16').startedAt, 4000)).toBe(0);
+  });
+
   it('aguarda uma revelação válida e preserva as bandeiras iniciais', () => {
     const random = vi.fn(draw);
-    const marked = playMove(createGame('9x9'), flag, random);
+    const marked = playMove(createGame('9x9'), flag, random, 1000);
+    expect(marked.startedAt).toBeNull();
     expect(marked.status).toBe('idle');
     expect(marked.board.flat().some(cell => cell.hasMine)).toBe(false);
-    expect(playMove(marked, { ...flag, type: 'reveal' }, random)).toBe(marked);
+    expect(playMove(marked, { ...flag, type: 'reveal' }, random, 1000)).toBe(marked);
     expect(random).not.toHaveBeenCalled();
-    const started = playMove(marked, first, random);
+    const started = playMove(marked, first, random, 1000);
+    expect(started.startedAt).toBe(1000);
     expect(started.status).toBe('playing');
     expect(started.board[0][0]).toMatchObject({ revealed: true, hasMine: false });
     expect(started.board[0][1].flagged).toBe(true);
@@ -21,21 +31,24 @@ describe('ciclo da partida', () => {
   });
 
   it('revela todas as minas na derrota e bloqueia novas jogadas', () => {
-    const started = playMove(createGame('9x9'), first, draw);
-    const lost = playMove(started, { ...flag, type: 'reveal' }, draw);
+    const started = playMove(createGame('9x9'), first, draw, 0);
+    const lost = playMove(started, { ...flag, type: 'reveal' }, draw, 5000);
+    expect(lost.startedAt).toBe(0);
+    expect(lost.finishedAt).toBe(5000);
     expect(lost.status).toBe('lost');
     expect(lost.board.flat().filter(cell => cell.hasMine && cell.revealed)).toHaveLength(10);
-    expect(playMove(lost, flag, draw)).toBe(lost);
-    expect(playMove(lost, first, draw)).toBe(lost);
+    expect(playMove(lost, flag, draw, 5000)).toBe(lost);
+    expect(playMove(lost, first, draw, 0)).toBe(lost);
   });
 
   it('encerra a partida na última célula segura e bloqueia novas jogadas', () => {
-    let game = playMove(createGame('9x9'), first, draw);
+    let game = playMove(createGame('9x9'), first, draw, 0);
     game.board.forEach((line, row) => line.forEach((cell, column) => {
-      if (!cell.hasMine) game = playMove(game, { type: 'reveal', position: { row, column } }, draw);
+      if (!cell.hasMine) game = playMove(game, { type: 'reveal', position: { row, column } }, draw, 5000);
     }));
+    expect(game.finishedAt).toBe(5000);
     expect(game.status).toBe('won');
-    expect(playMove(game, flag, draw)).toBe(game);
-    expect(playMove(game, { ...flag, type: 'reveal' }, draw)).toBe(game);
+    expect(playMove(game, flag, draw, 5000)).toBe(game);
+    expect(playMove(game, { ...flag, type: 'reveal' }, draw, 5000)).toBe(game);
   });
 });

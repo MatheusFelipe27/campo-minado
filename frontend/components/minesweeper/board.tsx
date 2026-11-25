@@ -5,6 +5,7 @@ import type { Cell } from '../../lib/minesweeper/board';
 import { createGame, playMove } from '../../lib/minesweeper/game';
 import styles from './board.module.css';
 import { SizeSelector } from './size-selector';
+import { Timer } from './timer';
 
 function cellDisplay(cell: Cell) {
   if (cell.flagged) return { text: '⚑', label: 'com bandeira' };
@@ -19,12 +20,13 @@ export function Board() {
   const finished = game.status === 'won' || game.status === 'lost';
 
   function move(type: 'flag' | 'reveal', row: number, column: number) {
-    setGame(playMove(game, { type, position: { row, column } }, Math.random));
+    setGame(playMove(game, { type, position: { row, column } }, Math.random, performance.now()));
   }
 
   return (
     <section className={styles.panel} aria-label="Tabuleiro de Campo Minado">
       <SizeSelector size={game.size} onChange={size => setGame(createGame(size))} />
+      <Timer startedAt={game.startedAt} finishedAt={game.finishedAt} />
       <p>Clique para revelar. Use o botão direito ou a tecla F para marcar e desmarcar bandeiras.</p>
       <div className={styles.field}>
         {game.board.map((line, row) => (
