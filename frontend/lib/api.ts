@@ -8,6 +8,28 @@ export interface CurrentUser {
   image: string | null;
 }
 
+export interface RankingEntry {
+  userName: string;
+  userImage: string | null;
+  boardSize: BoardSize;
+  timeSeconds: number;
+  createdAt: string;
+}
+
+export async function getRanking(boardSize: BoardSize | undefined, signal: AbortSignal): Promise<RankingEntry[]> {
+  const session = await getSession();
+  if (!session?.apiToken) throw new Error('Entre novamente para consultar o ranking.');
+  const url = new URL('/scores/ranking', process.env.NEXT_PUBLIC_API_URL);
+  if (boardSize) url.searchParams.set('boardSize', boardSize);
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${session.apiToken}` },
+    cache: 'no-store',
+    signal,
+  });
+  if (!response.ok) throw new Error(`Falha ao consultar o ranking (HTTP ${response.status}).`);
+  return response.json();
+}
+
 export async function getCurrentUser(token: string, signal?: AbortSignal): Promise<CurrentUser> {
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
     headers: { Authorization: `Bearer ${token}` },
