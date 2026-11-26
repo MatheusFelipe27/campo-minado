@@ -187,11 +187,11 @@ npm run build
 
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
+- [Integração contínua no GitHub Actions](.github/workflows/ci.yml) em pushes e pull requests. O frontend passa por lint, checagem de tipos, testes e build. Em paralelo, o backend passa por lint, build e testes e2e com um PostgreSQL temporário.
 - Controles de teclado, foco visível, descrição das células para leitores de tela e rolagem horizontal do campo 30×16 em janelas estreitas.
 
 **Próximas etapas planejadas**
 
-- Automatizar lint, testes e builds com GitHub Actions.
 - Incluir a API e o frontend no Compose para simplificar a inicialização dos três serviços.
 - Documentar a API com Swagger e limitar a frequência de envio de pontuações.
 - Ampliar a navegação do tabuleiro por teclado e disponibilizar o ranking pessoal.
