@@ -23,6 +23,7 @@ services:
     environment:
       DATABASE_URL: postgresql://campo_minado:${POSTGRES_PASSWORD:-campo_minado_dev}@postgres:5432/campo_minado
       PORT: 3001
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
     depends_on:
       postgres:
         condition: service_healthy

@@ -40,6 +40,17 @@ describe('Acesso à API', () => {
     await request(app.getHttpServer()).get('/users/me').expect(401);
   });
 
+  it('documenta no OpenAPI as rotas públicas e protegidas da API', async () => {
+    const { body } = await request(app.getHttpServer()).get('/docs-json').expect(200);
+    expect(body.components.securitySchemes.bearer).toMatchObject({ type: 'http', scheme: 'bearer' });
+    expect(body.paths['/health'].get.responses).toHaveProperty('200');
+    expect(body.paths['/health'].get.security ?? []).toEqual([]);
+    const bearer = [{ bearer: [] }];
+    expect(body.paths['/users/me'].get.security).toEqual(bearer);
+    expect(body.paths['/scores'].post.security).toEqual(bearer);
+    expect(body.paths['/scores/ranking'].get.security).toEqual(bearer);
+  });
+
   it('cria o usuário no primeiro acesso e mantém o cadastro no segundo', async () => {
     const users = app.get(DataSource).getRepository(User);
     expect(await users.countBy(identity)).toBe(0);

@@ -138,6 +138,12 @@ Após uma vitória, aguarde **Pontuação salva** e abra **Ver ranking**. A pág
 
 ## Contrato da API
 
+Abra a [documentação interativa do Swagger](http://localhost:3001/docs) para consultar os campos, filtros e respostas das quatro rotas. O contrato também está disponível em [formato OpenAPI JSON](http://localhost:3001/docs-json).
+
+Para experimentar uma rota protegida, entre no jogo com o GitHub e abra a [sessão do jogador](http://localhost:3000/api/auth/session) no mesmo navegador. Copie apenas o valor de `apiToken` e cole em **Authorize** no Swagger. A interface acrescenta o prefixo `Bearer` automaticamente. Experimente `GET /users/me` para conferir o perfil. O botão **Execute** em `POST /scores` grava uma pontuação real no banco em uso.
+
+A documentação fica habilitada em desenvolvimento e no Compose local. Ao executar a API diretamente em produção, defina `SWAGGER_ENABLED=true` para habilitá-la.
+
 Base local: `http://localhost:3001`. As rotas protegidas exigem `Authorization: Bearer <token>`.
 
 | Método e rota | Acesso | Resposta esperada |
@@ -177,7 +183,7 @@ npm run test:e2e
 | Suíte | Cobertura |
 |---|---|
 | **Frontend · Vitest · 29 testes** | Distribuição de minas, primeira revelação segura, flood fill, bandeiras, contagem, cronômetro, vitória, derrota e envio do score. Inclui perda de conexão após o envio. |
-| **API · Jest + Supertest · 23 testes e2e** | Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
+| **API · Jest + Supertest · 24 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
 
 O serviço `postgres-test` usa o banco `campo_minado_test` na porta `5433`, com dados temporários, separado do banco do jogo na `5432`. Para encerrá-lo após a suíte, execute `docker compose stop postgres-test`. [Testes e2e da API](backend/test/app.e2e-spec.ts)
 
@@ -203,6 +209,7 @@ npm run build
 **Já disponíveis**
 
 - Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
+- Swagger UI com autenticação Bearer e contrato OpenAPI gerado a partir dos controllers e DTOs.
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
 - [Integração contínua no GitHub Actions](.github/workflows/ci.yml) em pushes e pull requests. O frontend passa por lint, checagem de tipos, testes e build. Em paralelo, o backend passa por lint, build e testes e2e com um PostgreSQL temporário.
@@ -210,5 +217,5 @@ npm run build
 
 **Próximas etapas planejadas**
 
-- Documentar a API com Swagger e limitar a frequência de envio de pontuações.
+- Limitar a frequência de envio de pontuações.
 - Ampliar a navegação do tabuleiro por teclado e disponibilizar o ranking pessoal.
