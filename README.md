@@ -188,7 +188,7 @@ npm run test:e2e
 
 | Suíte | Cobertura |
 |---|---|
-| **Frontend · Vitest · 29 testes** | Distribuição de minas, primeira revelação segura, flood fill, bandeiras, contagem, cronômetro, vitória, derrota e envio do score. Inclui perda de conexão após o envio. |
+| **Frontend · Vitest · 30 testes** | Distribuição de minas, primeira revelação segura, flood fill, bandeiras, contagem, cronômetro, vitória, derrota e envio do score. Inclui perda de conexão e recusa por excesso de envios. |
 | **API · Jest + Supertest · 27 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat, limite de envios por jogador e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
 
 O serviço `postgres-test` usa o banco `campo_minado_test` na porta `5433`, com dados temporários, separado do banco do jogo na `5432`. Para encerrá-lo após a suíte, execute `docker compose stop postgres-test`. [Testes e2e da API](backend/test/app.e2e-spec.ts)
@@ -216,6 +216,7 @@ npm run build
 
 - Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
 - Swagger UI com autenticação Bearer e contrato OpenAPI gerado a partir dos controllers e DTOs.
+- Ranking pessoal em **Meus tempos**, com o melhor tempo da conta autenticada em cada dificuldade concluída.
 - Limite de envios por jogador com `@nestjs/throttler`. O contador fica na memória da instância da API e reinicia com ela. Em um deploy com várias réplicas, uma cota compartilhada exigiria armazenamento comum, como Redis.
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.

@@ -66,6 +66,15 @@ describe('envio da pontuação', () => {
     expect(request).toHaveBeenCalledTimes(1);
   });
 
+  it('informa que a pontuação foi recusada por excesso de envios sem repetir o POST', async () => {
+    request.mockResolvedValue(new Response(null, { status: 429 }));
+    const { playing, next } = lastMove(0);
+    await expect(submitWinningMove(playing, next)).rejects.toThrow(
+      'Você atingiu o limite de envios. Esta pontuação não foi salva.',
+    );
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
   it('não envia o resultado se a sessão expirou', async () => {
     vi.mocked(getSession).mockResolvedValue(null);
     const { playing, next } = lastMove(0);

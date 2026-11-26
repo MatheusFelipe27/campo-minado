@@ -66,5 +66,6 @@ export async function saveScore(boardSize: BoardSize, timeSeconds: number): Prom
   });
   if (response.status === 400) throw new Error('A API recusou a pontuação para este tempo e tamanho.');
   if (response.status === 401) throw new Error('A sessão foi recusada pela API. Entre novamente.');
+  if (response.status === 429) throw new Error('Você atingiu o limite de envios. Esta pontuação não foi salva.');
   if (response.status !== 201) throw new Error('Não foi possível confirmar o salvamento da pontuação.');
 }
