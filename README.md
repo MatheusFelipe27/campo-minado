@@ -8,7 +8,7 @@ Jogo de Campo Minado em TypeScript com login pelo GitHub e ranking global por te
 
 ## Executar localmente
 
-Você precisa de Git, Node.js 22, npm, Docker com Compose e uma conta GitHub com e-mail principal verificado. Os comandos de Git, Docker e npm abaixo funcionam no PowerShell e no Prompt de Comando (CMD). O Compose inicia o PostgreSQL, e cada aplicação roda em seu próprio terminal.
+Use Git, Docker com Compose v2.24 ou superior e uma conta GitHub com e-mail principal verificado. Os exemplos de geração de chaves e desenvolvimento com npm usam Node.js 22. Após configurar o ambiente, escolha entre executar o projeto completo com Docker ou iniciar os servidores em terminais próprios.
 
 ### 1. Clonar e preparar os arquivos de ambiente
 
@@ -63,7 +63,24 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 
 Os arquivos com as credenciais locais são ignorados pelo Git. Os modelos versionados estão em [frontend/.env.example](frontend/.env.example) e [backend/.env.example](backend/.env.example).
 
-### 3. Subir o banco, aplicar as migrations e iniciar a API
+### 3A. Executar o projeto completo com Docker
+
+Com os arquivos de ambiente preenchidos, libere as portas 3000 e 3001 encerrando eventuais servidores locais com `Ctrl+C`. Na raiz, execute:
+
+```sh
+docker compose up --build -d --wait
+docker compose ps
+```
+
+O backend aguarda o PostgreSQL, aplica as migrations pendentes e inicia a API. O frontend aguarda uma resposta saudável de `/health`. Abra [o jogo](http://localhost:3000), entre com o GitHub e acesse **Ver ranking**. O volume `postgres_data` conserva os cadastros e as pontuações entre execuções.
+
+A API usa o endereço interno `postgres:5432`. O navegador usa `http://localhost:3001` para acessar a API. Para personalizar essa URL no Compose, defina `NEXT_PUBLIC_API_URL` no ambiente do terminal antes do build. As chaves de OAuth e de sessão são carregadas dos arquivos locais ao iniciar os contêineres.
+
+Para acompanhar a inicialização, use `docker compose logs backend frontend`. Para encerrar os serviços preservando o volume, use `docker compose down`.
+
+### 3B. Desenvolver com npm
+
+**Banco e API**
 
 No **primeiro terminal**, comece na raiz do repositório. Suba o banco e entre na pasta `backend` para instalar as dependências, aplicar as migrations e iniciar a API. O comando `npm ci` usa as versões registradas no lockfile.
 
@@ -77,7 +94,7 @@ npm run start:dev
 
 As migrations criam as tabelas `users` e `scores`, a chave estrangeira da pontuação e o índice por tamanho e tempo. O TypeORM registra as migrations aplicadas. O banco do jogo usa um volume persistente. Com a API em execução, [abrir o health check](http://localhost:3001/health) deve retornar `{"status":"ok"}`.
 
-### 4. Abrir o jogo
+**Frontend**
 
 Deixe a API em execução. Abra um **segundo terminal** na raiz do repositório e entre na pasta `frontend` para iniciar o Next.js.
 
@@ -185,6 +202,7 @@ npm run build
 
 **Já disponíveis**
 
+- Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
 - [Integração contínua no GitHub Actions](.github/workflows/ci.yml) em pushes e pull requests. O frontend passa por lint, checagem de tipos, testes e build. Em paralelo, o backend passa por lint, build e testes e2e com um PostgreSQL temporário.
@@ -192,6 +210,5 @@ npm run build
 
 **Próximas etapas planejadas**
 
-- Incluir a API e o frontend no Compose para simplificar a inicialização dos três serviços.
 - Documentar a API com Swagger e limitar a frequência de envio de pontuações.
 - Ampliar a navegação do tabuleiro por teclado e disponibilizar o ranking pessoal.
