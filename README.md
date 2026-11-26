@@ -137,7 +137,7 @@ Após uma vitória, aguarde **Pontuação salva** e abra **Ranking**. A página 
 
 **Tempo e confiança no cliente.** O jogo mede a duração pela diferença entre os instantes da primeira revelação e do fim da partida. O envio ocorre na transição para vitória e usa uma sessão atualizada. A API exige segundos inteiros positivos e aplica os mínimos da tabela. Esse anti-cheat detecta tempos incompatíveis com a dificuldade; a simulação do tabuleiro acontece no navegador. Se a resposta de uma gravação se perder, a interface informa a falha de confirmação e evita repetir automaticamente um envio que pode já ter sido aceito.
 
-Na página de ranking, selecione **Meus tempos** para consultar sua vitória mais rápida em cada dificuldade concluída. A opção **Ranking geral** volta ao Top 30 com o filtro de tamanho que você escolheu.
+Na página de ranking, selecione **Meus melhores tempos** para consultar sua vitória mais rápida em cada dificuldade concluída. A opção **Ranking geral** volta ao Top 30 com o filtro de tamanho que você escolheu.
 
 ## Contrato da API
 
@@ -216,7 +216,7 @@ npm run build
 
 - Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
 - Swagger UI com autenticação Bearer e contrato OpenAPI gerado a partir dos controllers e DTOs.
-- Ranking pessoal em **Meus tempos**, com o melhor tempo da conta autenticada em cada dificuldade concluída.
+- Ranking pessoal em **Meus melhores tempos**, com o melhor tempo da conta autenticada em cada dificuldade concluída.
 - Limite de envios por jogador com `@nestjs/throttler`. O contador fica na memória da instância da API e reinicia com ela. Em um deploy com várias réplicas, uma cota compartilhada exigiria armazenamento comum, como Redis.
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
