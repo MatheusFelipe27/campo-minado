@@ -114,7 +114,8 @@ Abra [Campo Minado local](http://localhost:3000). Ao acessar o jogo ou o ranking
 | 16×16 | 40 | 2 s |
 | 30×16 | 99 | 3 s |
 
-- **Revelar:** clique com o botão esquerdo. As minas são distribuídas na primeira revelação válida, preservando a célula escolhida. O cronômetro começa nessa jogada.
+- **Navegar pelo teclado:** use **Tab** para entrar no campo e as **setas** para mover o foco uma célula por vez. **Tab** sai do campo e **Shift+Tab** volta ao controle anterior.
+- **Revelar:** clique com o botão esquerdo ou pressione **Enter** ou **Espaço** na célula em foco. As minas são distribuídas na primeira revelação válida, preservando a célula escolhida. O cronômetro começa nessa jogada.
 - **Ler o campo:** cada número indica quantas das oito posições vizinhas contêm minas. Uma célula vazia abre a região conectada e os números que a delimitam.
 - **Marcar:** use o botão direito ou pressione **F** com a célula em foco. Repita para retirar a bandeira. O contador mostra o total de minas menos as bandeiras colocadas; um valor negativo indica marcações excedentes.
 - **Encerrar:** revelar todas as células seguras dá a vitória e congela o tempo. Revelar uma mina mostra as demais e encerra a partida sem enviar pontuação. Trocar de dificuldade inicia um novo campo.
@@ -219,8 +220,4 @@ npm run build
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
 - [Integração contínua no GitHub Actions](.github/workflows/ci.yml) em pushes e pull requests. O frontend passa por lint, checagem de tipos, testes e build. Em paralelo, o backend passa por lint, build e testes e2e com um PostgreSQL temporário.
-- Controles de teclado, foco visível, descrição das células para leitores de tela e rolagem horizontal do campo 30×16 em janelas estreitas.
-
-**Próximas etapas planejadas**
-
-- Ampliar a navegação do tabuleiro por teclado.
+- Navegação por setas com uma parada de Tab no campo, foco visível, descrição das células para leitores de tela e rolagem horizontal no campo 30×16.
