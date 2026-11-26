@@ -72,7 +72,7 @@ docker compose up --build -d --wait
 docker compose ps
 ```
 
-O backend aguarda o PostgreSQL, aplica as migrations pendentes e inicia a API. O frontend aguarda uma resposta saudável de `/health`. Abra [o jogo](http://localhost:3000), entre com o GitHub e acesse **Ver ranking**. O volume `postgres_data` conserva os cadastros e as pontuações entre execuções.
+O backend aguarda o PostgreSQL, aplica as migrations pendentes e inicia a API. O frontend aguarda uma resposta saudável de `/health`. Abra [o jogo](http://localhost:3000), entre com o GitHub e acesse **Ranking**. O volume `postgres_data` conserva os cadastros e as pontuações entre execuções.
 
 A API usa o endereço interno `postgres:5432`. O navegador usa `http://localhost:3001` para acessar a API. Para personalizar essa URL no Compose, defina `NEXT_PUBLIC_API_URL` no ambiente do terminal antes do build. As chaves de OAuth e de sessão são carregadas dos arquivos locais ao iniciar os contêineres.
 
@@ -115,12 +115,12 @@ Abra [Campo Minado local](http://localhost:3000). Ao acessar o jogo ou o ranking
 | 30×16 | 99 | 3 s |
 
 - **Navegar pelo teclado:** use **Tab** para entrar no campo e as **setas** para mover o foco uma célula por vez. **Tab** sai do campo e **Shift+Tab** volta ao controle anterior.
-- **Revelar:** clique com o botão esquerdo ou pressione **Enter** ou **Espaço** na célula em foco. As minas são distribuídas na primeira revelação válida, preservando a célula escolhida. O cronômetro começa nessa jogada.
+- **Revelar:** selecione **Revelar** e toque ou clique na célula, ou pressione **Enter** ou **Espaço** na célula em foco. As minas são distribuídas na primeira revelação válida, preservando a célula escolhida. O cronômetro começa nessa jogada.
 - **Ler o campo:** cada número indica quantas das oito posições vizinhas contêm minas. Uma célula vazia abre a região conectada e os números que a delimitam.
-- **Marcar:** use o botão direito ou pressione **F** com a célula em foco. Repita para retirar a bandeira. O contador mostra o total de minas menos as bandeiras colocadas; um valor negativo indica marcações excedentes.
-- **Encerrar:** revelar todas as células seguras dá a vitória e congela o tempo. Revelar uma mina mostra as demais e encerra a partida sem enviar pontuação. Trocar de dificuldade inicia um novo campo.
+- **Marcar:** selecione **Marcar** e toque ou clique na célula, use o botão direito ou pressione **F** com a célula em foco. Repita para retirar a bandeira. O contador mostra o total de minas menos as bandeiras colocadas; um valor negativo indica marcações excedentes.
+- **Encerrar:** revelar todas as células seguras dá a vitória e congela o tempo. Revelar uma mina mostra as demais e encerra a partida sem enviar pontuação. **Nova partida** reinicia o campo na dificuldade atual. Trocar de dificuldade também inicia um novo campo.
 
-Após uma vitória, aguarde **Pontuação salva** e abra **Ver ranking**. A página `/ranking` mostra posição, nome, avatar, tempo, campo e data. Em **Todos os tamanhos**, entram as 30 pontuações mais rápidas do conjunto inteiro. Ao escolher uma dificuldade, o banco aplica o filtro antes do limite de 30. Um jogador pode aparecer mais de uma vez. Em caso de empate, a pontuação mais antiga vem primeiro; o UUID resolve empates de tempo e data.
+Após uma vitória, aguarde **Pontuação salva** e abra **Ranking**. A página `/ranking` mostra posição, nome, avatar, tempo, campo e data. Em **Todos os tamanhos**, entram as 30 pontuações mais rápidas do conjunto inteiro. Ao escolher uma dificuldade, o banco aplica o filtro antes do limite de 30. Um jogador pode aparecer mais de uma vez. Em caso de empate, a pontuação mais antiga vem primeiro; o UUID resolve empates de tempo e data.
 
 ## Arquitetura e decisões
 

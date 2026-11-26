@@ -13,8 +13,8 @@ export function SizeSelector({ size, onChange }: {
   onChange: (size: BoardSize) => void;
 }) {
   return (
-    <div className="mb-4 grid gap-1">
-      <label htmlFor="board-size" className="text-sm font-medium">Dificuldade</label>
+    <div className="grid gap-1">
+      <label htmlFor="board-size" className="text-xs font-semibold text-slate-300">Dificuldade</label>
       <Select
         items={options}
         value={size}
@@ -22,13 +22,13 @@ export function SizeSelector({ size, onChange }: {
           if (value && value !== size) onChange(value);
         }}
       >
-        <SelectTrigger id="board-size">
+        <SelectTrigger id="board-size" className="min-h-11 w-full cursor-pointer border-slate-600 bg-midnight text-ivory focus-visible:ring-arcade-amber [&_svg]:text-slate-300">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {options.map(option => (
-              <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              <SelectItem key={option.value} value={option.value} className="cursor-pointer">{option.label}</SelectItem>
             ))}
           </SelectGroup>
         </SelectContent>

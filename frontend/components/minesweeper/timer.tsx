@@ -12,5 +12,5 @@ export function Timer({ startedAt, finishedAt }: { startedAt: number | null; fin
 
   const seconds = elapsedSeconds(startedAt, finishedAt ?? now);
   const minutes = Math.floor(seconds / 60);
-  return <p>Tempo: <span role="timer" className="tabular-nums">{minutes}:{String(seconds % 60).padStart(2, '0')}</span></p>;
+  return <span role="timer">{String(minutes).padStart(2, '0')}:{String(seconds % 60).padStart(2, '0')}</span>;
 }
