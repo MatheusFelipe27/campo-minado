@@ -15,5 +15,22 @@ services:
       timeout: 3s
       retries: 10
 
+  postgres-test:
+    image: postgres:16-alpine
+    profiles: ["test"]
+    environment:
+      POSTGRES_DB: campo_minado_test
+      POSTGRES_USER: campo_minado_test
+      POSTGRES_PASSWORD: campo_minado_test
+    ports:
+      - "127.0.0.1:5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campo_minado_test -d campo_minado_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
 volumes:
   postgres_data:

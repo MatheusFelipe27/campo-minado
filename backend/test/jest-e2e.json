@@ -1,0 +1,8 @@
+{
+  "rootDir": "..",
+  "testEnvironment": "node",
+  "preset": "ts-jest",
+  "testMatch": ["<rootDir>/test/**/*.e2e-spec.ts"],
+  "setupFiles": ["<rootDir>/test/setup-env.ts"],
+  "testTimeout": 30000
+}
