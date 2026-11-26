@@ -49,6 +49,7 @@ describe('Acesso à API', () => {
     expect(body.paths['/users/me'].get.security).toEqual(bearer);
     expect(body.paths['/scores'].post.security).toEqual(bearer);
     expect(body.paths['/scores/ranking'].get.security).toEqual(bearer);
+    expect(body.paths['/scores/me'].get.security).toEqual(bearer);
   });
 
   it('cria o usuário no primeiro acesso e mantém o cadastro no segundo', async () => {
@@ -73,7 +74,7 @@ describe('Acesso à API', () => {
     await request(app.getHttpServer()).get('/users/me').set('Authorization', `Bearer ${token}`).expect(401);
   });
 
-  describe('GET /scores/ranking', () => {
+  describe('Rankings geral e pessoal', () => {
     const early = new Date('2026-01-01T12:00:00Z');
     const late = new Date('2026-01-01T13:00:00Z');
     const ana = { id: randomUUID(), name: 'Ana', image: null };
@@ -111,6 +112,10 @@ describe('Acesso à API', () => {
       await request(app.getHttpServer()).get('/scores/ranking').expect(401);
     });
 
+    it('exige autenticação para consultar os tempos pessoais', async () => {
+      await request(app.getHttpServer()).get('/scores/me').expect(401);
+    });
+
     it('retorna os 30 menores tempos globais em ordem crescente', async () => {
       const { body } = await ranking().expect(200);
       expect(body.map((entry: { timeSeconds: number }) => entry.timeSeconds)).toEqual([
@@ -140,6 +145,19 @@ describe('Acesso à API', () => {
 
     it('rejeita um tamanho desconhecido', async () => {
       await ranking().query({ boardSize: '10x10' }).expect(400);
+    });
+
+    it('retorna apenas o recorde de cada dificuldade concluída pela conta do token', async () => {
+      const personal = (account: string) => request(app.getHttpServer()).get('/scores/me')
+        .set('Authorization', `Bearer ${testAccessToken(account)}`);
+      const bestSmall = { boardSize: '9x9', timeSeconds: 3, createdAt: early.toISOString() };
+      await personal(ana.id).expect(200, [bestSmall]);
+      const { body } = await personal(bia.id).expect(200);
+      expect(body).toHaveLength(2);
+      expect(body).toEqual(expect.arrayContaining([
+        bestSmall, { boardSize: '30x16', timeSeconds: 90, createdAt: early.toISOString() },
+      ]));
+      await personal(accountId).expect(200, []);
     });
   });
 

@@ -4,7 +4,7 @@ import { CreateScoreDto } from './dto/create-score.dto';
 import { RankingQueryDto } from './dto/ranking-query.dto';
 import { ScoresService } from './scores.service';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { RankingEntryDto, SavedScoreDto } from './dto/score-response.dto';
+import { RankingEntryDto, SavedScoreDto, TimedScoreDto } from './dto/score-response.dto';
 
 @ApiTags('Pontuações')
 @ApiBearerAuth()
@@ -18,6 +18,12 @@ export class ScoresController {
   @ApiBadRequestResponse({ description: 'Filtro inválido.' })
   ranking(@Query() query: RankingQueryDto) {
     return this.scores.ranking(query.boardSize);
+  }
+
+  @Get('me')
+  @ApiOkResponse({ type: [TimedScoreDto], description: 'Melhor tempo do jogador autenticado em cada dificuldade concluída.' })
+  personalBests(@Req() request: { user: { id: string } }) {
+    return this.scores.personalBests(request.user.id);
   }
 
   @Post()

@@ -138,7 +138,7 @@ Após uma vitória, aguarde **Pontuação salva** e abra **Ver ranking**. A pág
 
 ## Contrato da API
 
-Abra a [documentação interativa do Swagger](http://localhost:3001/docs) para consultar os campos, filtros e respostas das quatro rotas. O contrato também está disponível em [formato OpenAPI JSON](http://localhost:3001/docs-json).
+Abra a [documentação interativa do Swagger](http://localhost:3001/docs) para consultar os campos, filtros e respostas das rotas da API. O contrato também está disponível em [formato OpenAPI JSON](http://localhost:3001/docs-json).
 
 Para experimentar uma rota protegida, entre no jogo com o GitHub e abra a [sessão do jogador](http://localhost:3000/api/auth/session) no mesmo navegador. Copie apenas o valor de `apiToken` e cole em **Authorize** no Swagger. A interface acrescenta o prefixo `Bearer` automaticamente. Experimente `GET /users/me` para conferir o perfil. O botão **Execute** em `POST /scores` grava uma pontuação real no banco em uso.
 
@@ -152,6 +152,7 @@ Base local: `http://localhost:3001`. As rotas protegidas exigem `Authorization: 
 | `GET /users/me` | Autenticado | `200` com `id`, `email`, `name` e `image`. O primeiro acesso registra o usuário |
 | `POST /scores` | Autenticado | `201` com `id`, `userId`, `boardSize`, `timeSeconds` e `createdAt` |
 | `GET /scores/ranking` | Autenticado | `200` com até 30 registros. Aceita o filtro opcional `?boardSize=9x9`, `16x16` ou `30x16` como valor de `boardSize` |
+| `GET /scores/me` | Autenticado | `200` com o menor tempo da conta em cada dificuldade concluída. Em empate, retorna a vitória mais antiga. Uma conta sem vitórias recebe `[]`. |
 
 Corpo de exemplo para `POST /scores`:
 
@@ -185,7 +186,7 @@ npm run test:e2e
 | Suíte | Cobertura |
 |---|---|
 | **Frontend · Vitest · 29 testes** | Distribuição de minas, primeira revelação segura, flood fill, bandeiras, contagem, cronômetro, vitória, derrota e envio do score. Inclui perda de conexão após o envio. |
-| **API · Jest + Supertest · 25 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat, limite de envios por jogador e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
+| **API · Jest + Supertest · 27 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat, limite de envios por jogador e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
 
 O serviço `postgres-test` usa o banco `campo_minado_test` na porta `5433`, com dados temporários, separado do banco do jogo na `5432`. Para encerrá-lo após a suíte, execute `docker compose stop postgres-test`. [Testes e2e da API](backend/test/app.e2e-spec.ts)
 
@@ -220,4 +221,4 @@ npm run build
 
 **Próximas etapas planejadas**
 
-- Ampliar a navegação do tabuleiro por teclado e disponibilizar o ranking pessoal.
+- Ampliar a navegação do tabuleiro por teclado e exibir os recordes pessoais na tela de ranking.

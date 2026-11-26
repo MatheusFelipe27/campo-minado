@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MIN_SECONDS_BY_SIZE, type BoardSize } from './board-size';
 import { CreateScoreDto } from './dto/create-score.dto';
+import type { TimedScoreDto } from './dto/score-response.dto';
 import { Score } from './score.entity';
 
 interface RankingEntry {
@@ -35,6 +36,20 @@ export class ScoresService {
       .addOrderBy('score.id', 'ASC')
       .limit(30)
       .getRawMany<RankingEntry>();
+  }
+
+  personalBests(userId: string): Promise<TimedScoreDto[]> {
+    return this.scores.createQueryBuilder('score')
+      .select('score.boardSize', 'boardSize')
+      .addSelect('score.timeSeconds', 'timeSeconds')
+      .addSelect('score.createdAt', 'createdAt')
+      .where('score.userId = :userId', { userId })
+      .distinctOn(['score.boardSize'])
+      .orderBy('score.boardSize', 'ASC')
+      .addOrderBy('score.timeSeconds', 'ASC')
+      .addOrderBy('score.createdAt', 'ASC')
+      .addOrderBy('score.id', 'ASC')
+      .getRawMany<TimedScoreDto>();
   }
 
   create(userId: string, { boardSize, timeSeconds }: CreateScoreDto) {

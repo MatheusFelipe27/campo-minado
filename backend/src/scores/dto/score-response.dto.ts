@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CreateScoreDto } from './create-score.dto';
 
-class TimedScoreDto extends CreateScoreDto {
+export class TimedScoreDto extends CreateScoreDto {
   @ApiProperty({ type: 'string', format: 'date-time' })
   createdAt!: Date;
 }
