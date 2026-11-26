@@ -161,6 +161,8 @@ Corpo de exemplo para `POST /scores`:
 
 Tamanho desconhecido, tempo inválido ou campos extras como `userId` no corpo retornam `400`. Token ausente, inválido ou expirado retorna `401`. Uma consulta válida de ranking sem resultados retorna `200` com `[]`.
 
+Cada jogador pode fazer até 5 tentativas de `POST /scores` por minuto. Ao exceder a cota, a API responde `429` e informa no cabeçalho `Retry-After` quantos segundos aguardar. A consulta ao ranking continua disponível.
+
 ## Testes
 
 Com as dependências instaladas, você pode executar as duas suítes sem login no GitHub. Comece cada bloco em um terminal aberto na **raiz do repositório**.
@@ -183,7 +185,7 @@ npm run test:e2e
 | Suíte | Cobertura |
 |---|---|
 | **Frontend · Vitest · 29 testes** | Distribuição de minas, primeira revelação segura, flood fill, bandeiras, contagem, cronômetro, vitória, derrota e envio do score. Inclui perda de conexão após o envio. |
-| **API · Jest + Supertest · 24 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
+| **API · Jest + Supertest · 25 testes e2e** | Contrato OpenAPI, Guard real, tokens expirados ou com assinatura inválida, upsert, vínculo entre jogador e score, validações, anti-cheat, limite de envios por jogador e persistência. O teste do Top 30 cria 31 pontuações e comprova que o filtro recupera uma partida fora do ranking global. |
 
 O serviço `postgres-test` usa o banco `campo_minado_test` na porta `5433`, com dados temporários, separado do banco do jogo na `5432`. Para encerrá-lo após a suíte, execute `docker compose stop postgres-test`. [Testes e2e da API](backend/test/app.e2e-spec.ts)
 
@@ -210,6 +212,7 @@ npm run build
 
 - Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
 - Swagger UI com autenticação Bearer e contrato OpenAPI gerado a partir dos controllers e DTOs.
+- Limite de envios por jogador com `@nestjs/throttler`. O contador fica na memória da instância da API e reinicia com ela. Em um deploy com várias réplicas, uma cota compartilhada exigiria armazenamento comum, como Redis.
 - Testes da lógica do jogo com sorteio controlado e verificação do envio de vitórias.
 - Testes HTTP de ponta a ponta com NestJS, PostgreSQL isolado e as migrations usadas pela aplicação.
 - [Integração contínua no GitHub Actions](.github/workflows/ci.yml) em pushes e pull requests. O frontend passa por lint, checagem de tipos, testes e build. Em paralelo, o backend passa por lint, build e testes e2e com um PostgreSQL temporário.
@@ -217,5 +220,4 @@ npm run build
 
 **Próximas etapas planejadas**
 
-- Limitar a frequência de envio de pontuações.
 - Ampliar a navegação do tabuleiro por teclado e disponibilizar o ranking pessoal.

@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { ThrottlerGuard } from '@nestjs/throttler';
 import { CreateScoreDto } from './dto/create-score.dto';
 import { RankingQueryDto } from './dto/ranking-query.dto';
 import { ScoresService } from './scores.service';
-import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import { ApiBadRequestResponse, ApiBearerAuth, ApiCreatedResponse, ApiOkResponse, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { RankingEntryDto, SavedScoreDto } from './dto/score-response.dto';
 
 @ApiTags('Pontuações')
@@ -20,6 +21,11 @@ export class ScoresController {
   }
 
   @Post()
+  @UseGuards(ThrottlerGuard)
+  @ApiTooManyRequestsResponse({
+    description: 'Limite de 5 tentativas por minuto por jogador excedido.',
+    headers: { 'Retry-After': { description: 'Segundos até poder tentar novamente.', schema: { type: 'integer' } } },
+  })
   @ApiCreatedResponse({ type: SavedScoreDto, description: 'Vitória registrada para o jogador do token.' })
   @ApiBadRequestResponse({ description: 'Corpo inválido ou tempo abaixo do mínimo da dificuldade.' })
   create(@Req() request: { user: { id: string } }, @Body() input: CreateScoreDto) {

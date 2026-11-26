@@ -173,6 +173,22 @@ describe('Acesso à API', () => {
         .send({ boardSize: '9x9', timeSeconds: 12 }).expect(401);
     });
 
+    it('bloqueia o 6º envio da conta, preserva o ranking e permite que outra conta envie', async () => {
+      const input = { boardSize: '9x9', timeSeconds: 12 };
+      for (let i = 0; i < 5; i++) {
+        await postScore(input).expect(201);
+      }
+      const blocked = await postScore(input).expect(429);
+      expect(Number(blocked.headers['retry-after'])).toBeGreaterThan(0);
+      const player = await currentPlayer();
+      expect(await app.get(DataSource).getRepository(Score).countBy({ userId: player.id })).toBe(5);
+
+      await request(app.getHttpServer()).get('/scores/ranking')
+        .set('Authorization', `Bearer ${testAccessToken(playerAccount)}`).expect(200);
+      await request(app.getHttpServer()).post('/scores')
+        .set('Authorization', `Bearer ${testAccessToken(accountId)}`).send(input).expect(201);
+    });
+
     it.each([
       { boardSize: '9x9', timeSeconds: 1 },
       { boardSize: '16x16', timeSeconds: 2 },
