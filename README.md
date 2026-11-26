@@ -164,18 +164,20 @@ npm run test:e2e
 
 O serviço `postgres-test` usa o banco `campo_minado_test` na porta `5433`, com dados temporários, separado do banco do jogo na `5432`. Para encerrá-lo após a suíte, execute `docker compose stop postgres-test`. [Testes e2e da API](backend/test/app.e2e-spec.ts)
 
-### Verificar tipos e gerar os builds
+### Executar o lint, verificar tipos e gerar os builds
 
-No terminal do **frontend**, dentro de `frontend/`, pare o servidor de desenvolvimento com `Ctrl+C` antes do build. O modo de desenvolvimento e o build escrevem na mesma pasta `.next`.
+No terminal do **frontend**, dentro de `frontend/`, o ESLint verifica páginas, componentes e lógica do jogo com as regras de Next.js, React e TypeScript. Pare o servidor de desenvolvimento com `Ctrl+C` antes do build. O modo de desenvolvimento e o build escrevem na mesma pasta `.next`.
 
 ```sh
+npm run lint
 npm run typecheck
 npm run build
 ```
 
-No terminal do **backend**, dentro de `backend/`, compile a API com TypeScript.
+No terminal do **backend**, dentro de `backend/`, execute o lint do código da API, das migrations e dos testes. Depois compile a API com TypeScript.
 
 ```sh
+npm run lint
 npm run build
 ```
 
