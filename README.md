@@ -136,6 +136,8 @@ Após uma vitória, aguarde **Pontuação salva** e abra **Ver ranking**. A pág
 
 **Tempo e confiança no cliente.** O jogo mede a duração pela diferença entre os instantes da primeira revelação e do fim da partida. O envio ocorre na transição para vitória e usa uma sessão atualizada. A API exige segundos inteiros positivos e aplica os mínimos da tabela. Esse anti-cheat detecta tempos incompatíveis com a dificuldade; a simulação do tabuleiro acontece no navegador. Se a resposta de uma gravação se perder, a interface informa a falha de confirmação e evita repetir automaticamente um envio que pode já ter sido aceito.
 
+Na página de ranking, selecione **Meus tempos** para consultar sua vitória mais rápida em cada dificuldade concluída. A opção **Ranking geral** volta ao Top 30 com o filtro de tamanho que você escolheu.
+
 ## Contrato da API
 
 Abra a [documentação interativa do Swagger](http://localhost:3001/docs) para consultar os campos, filtros e respostas das rotas da API. O contrato também está disponível em [formato OpenAPI JSON](http://localhost:3001/docs-json).
@@ -221,4 +223,4 @@ npm run build
 
 **Próximas etapas planejadas**
 
-- Ampliar a navegação do tabuleiro por teclado e exibir os recordes pessoais na tela de ranking.
+- Ampliar a navegação do tabuleiro por teclado.

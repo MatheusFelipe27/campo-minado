@@ -9,7 +9,7 @@ export default async function RankingPage() {
   return (
     <>
       <Link href="/" className="text-primary underline underline-offset-4">Voltar ao jogo</Link>
-      <h1>Ranking global</h1>
+      <h1>Ranking</h1>
       <Ranking />
     </>
   );

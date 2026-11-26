@@ -3,10 +3,11 @@
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getRanking, type RankingEntry } from '@/lib/api';
+import { getPersonalBests, getRanking, type PersonalBest, type RankingEntry } from '@/lib/api';
 import { BOARD_SIZES, type BoardSize } from '@/lib/minesweeper/board';
 
 type Filter = BoardSize | 'all';
+type View = 'global' | 'personal';
 const options: { value: Filter; label: string }[] = [
   { value: 'all', label: 'Todos os tamanhos' },
   ...(Object.keys(BOARD_SIZES) as BoardSize[]).map(value => ({
@@ -15,12 +16,14 @@ const options: { value: Filter; label: string }[] = [
 ];
 const dateFormat = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
-function Results({ size }: { size?: BoardSize }) {
-  const [entries, setEntries] = useState<RankingEntry[] | null>(null);
+function Results({ view, size }: { view: View; size?: BoardSize }) {
+  const personal = view === 'personal';
+  const [entries, setEntries] = useState<(RankingEntry | PersonalBest)[] | null>(null);
   const [error, setError] = useState('');
   useEffect(() => {
     const controller = new AbortController();
-    getRanking(size, controller.signal).then(
+    const results = personal ? getPersonalBests(controller.signal) : getRanking(size, controller.signal);
+    results.then(
       data => { if (!controller.signal.aborted) setEntries(data); },
       cause => {
         if (!controller.signal.aborted) {
@@ -30,30 +33,35 @@ function Results({ size }: { size?: BoardSize }) {
       },
     );
     return () => controller.abort();
-  }, [size]);
+  }, [personal, size]);
 
   if (error) return <p role="alert">{error}</p>;
   if (!entries) return <p role="status">Carregando ranking…</p>;
+  if (personal && !entries.length) return <p role="status">Vença uma partida para registrar seu primeiro tempo.</p>;
   if (!entries.length) return <p role="status">{size ? 'Nenhuma pontuação para este tamanho.' : 'Nenhuma pontuação registrada.'}</p>;
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
-        <caption className="sr-only">Até 30 pontuações por menor tempo</caption>
+        <caption className={personal ? 'pb-2 text-left font-medium' : 'sr-only'}>
+          {personal ? 'Seu melhor tempo em cada dificuldade' : 'Até 30 pontuações por menor tempo'}
+        </caption>
         <thead className="border-b text-muted-foreground">
-          <tr>{['Posição', 'Jogador', 'Tempo', 'Campo', 'Data'].map(title =>
+          <tr>{(personal ? ['Tempo', 'Campo', 'Data'] : ['Posição', 'Jogador', 'Tempo', 'Campo', 'Data']).map(title =>
             <th scope="col" className="px-3 py-2" key={title}>{title}</th>)}</tr>
         </thead>
         <tbody>
           {entries.map((entry, index) => (
             <tr key={index} className="border-b">
-              <td className="px-3 py-2 tabular-nums">{index + 1}</td>
-              <td className="px-3 py-2">
-                <span className="flex items-center gap-2">
-                  {entry.userImage && <Image unoptimized src={entry.userImage} alt="" width={28} height={28} className="rounded-full" />}
-                  {entry.userName}
-                </span>
-              </td>
+              {'userName' in entry && <>
+                <td className="px-3 py-2 tabular-nums">{index + 1}</td>
+                <td className="px-3 py-2">
+                  <span className="flex items-center gap-2">
+                    {entry.userImage && <Image unoptimized src={entry.userImage} alt="" width={28} height={28} className="rounded-full" />}
+                    {entry.userName}
+                  </span>
+                </td>
+              </>}
               <td className="whitespace-nowrap px-3 py-2 tabular-nums">{entry.timeSeconds} s</td>
               <td className="px-3 py-2">{entry.boardSize.replace('x', '×')}</td>
               <td className="whitespace-nowrap px-3 py-2"><time dateTime={entry.createdAt}>{dateFormat.format(new Date(entry.createdAt))}</time></td>
@@ -66,10 +74,19 @@ function Results({ size }: { size?: BoardSize }) {
 }
 
 export function Ranking() {
+  const [view, setView] = useState<View>('global');
   const [filter, setFilter] = useState<Filter>('all');
   return (
     <>
-      <div className="grid gap-1">
+      <div role="group" aria-label="Escolher ranking" className="flex flex-wrap gap-2">
+        {(['global', 'personal'] as const).map(option => (
+          <button key={option} type="button" aria-pressed={view === option} onClick={() => setView(option)}
+            className="rounded-md border px-3 py-2 text-sm font-medium aria-pressed:bg-primary aria-pressed:text-primary-foreground focus-visible:outline-2">
+            {option === 'global' ? 'Ranking geral' : 'Meus tempos'}
+          </button>
+        ))}
+      </div>
+      {view === 'global' && <div className="grid gap-1">
         <label htmlFor="ranking-size" className="text-sm font-medium">Tamanho do campo</label>
         <Select items={options} value={filter} onValueChange={value => { if (value) setFilter(value); }}>
           <SelectTrigger id="ranking-size"><SelectValue /></SelectTrigger>
@@ -79,8 +96,8 @@ export function Ranking() {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </div>
-      <Results key={filter} size={filter === 'all' ? undefined : filter} />
+      </div>}
+      <Results key={view === 'global' ? filter : view} view={view} size={view === 'global' && filter !== 'all' ? filter : undefined} />
     </>
   );
 }
