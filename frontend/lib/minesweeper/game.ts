@@ -9,10 +9,11 @@ export interface Game {
   status: 'idle' | 'playing' | 'won' | 'lost';
   startedAt: number | null;
   finishedAt: number | null;
+  detonatedMine: Position | null;
 }
 
 export function createGame(size: BoardSize): Game {
-  return { size, board: createEmptyBoard(size), status: 'idle', startedAt: null, finishedAt: null };
+  return { size, board: createEmptyBoard(size), status: 'idle', startedAt: null, finishedAt: null, detonatedMine: null };
 }
 
 export function elapsedSeconds(startedAt: number | null, end: number): number {
@@ -47,7 +48,7 @@ export function playMove(game: Game, move: Move, random: () => number, now: numb
     const exposed = result.board.map(line => line.map(cell =>
       cell.hasMine ? { ...cell, revealed: true, flagged: false } : cell,
     ));
-    return { ...game, board: exposed, status: 'lost', startedAt, finishedAt: now };
+    return { ...game, board: exposed, status: 'lost', startedAt, finishedAt: now, detonatedMine: position };
   }
   const won = checkVictory(result.board);
   return { ...game, board: result.board, status: won ? 'won' : 'playing', startedAt, finishedAt: won ? now : null };

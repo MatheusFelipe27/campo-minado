@@ -12,6 +12,7 @@ WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/public ./public
 COPY --from=build --chown=node:node /app/.next ./.next
 USER node
 EXPOSE 3000

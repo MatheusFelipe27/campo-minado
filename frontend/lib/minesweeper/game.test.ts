@@ -36,6 +36,8 @@ describe('ciclo da partida', () => {
     expect(lost.startedAt).toBe(0);
     expect(lost.finishedAt).toBe(5000);
     expect(lost.status).toBe('lost');
+    expect(lost.detonatedMine).toEqual(flag.position);
+    expect(started.detonatedMine).toBeNull();
     expect(lost.board.flat().filter(cell => cell.hasMine && cell.revealed)).toHaveLength(10);
     expect(playMove(lost, flag, draw, 5000)).toBe(lost);
     expect(playMove(lost, first, draw, 0)).toBe(lost);

@@ -4,6 +4,7 @@ import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 
 import type { BoardSize, Cell } from '../../lib/minesweeper/board';
 import { createGame, playMove } from '../../lib/minesweeper/game';
 import { GameControls, type Tool } from './game-controls';
+import { useGameSound } from './use-game-sound';
 import { remainingMines } from '../../lib/minesweeper/flag';
 import { submitWinningMove } from '../../lib/winning-score';
 
@@ -23,13 +24,16 @@ const open = 'rounded-[2px] border-stone-400 bg-[#f4ead6]';
 export function Board() {
   const [game, setGame] = useState(() => createGame('9x9'));
   const [tool, setTool] = useState<Tool>('reveal');
+  const sound = useGameSound();
   const [activeCell, setActiveCell] = useState({ row: 0, column: 0 });
   const field = useRef<HTMLDivElement>(null);
+  const stage = useRef<HTMLElement>(null);
   const instructionsId = useId();
   const [submission, setSubmission] = useState<{ game: typeof game; message: string } | null>(null);
   const finished = game.status === 'won' || game.status === 'lost';
 
   function startGame(size: BoardSize) {
+    sound.stop();
     setTool('reveal');
     setSubmission(null);
     setActiveCell({ row: 0, column: 0 });
@@ -66,6 +70,14 @@ export function Board() {
     if (finished) return;
     const next = playMove(game, { type, position: { row, column } }, Math.random, performance.now());
     setGame(next);
+    if (next.status === 'lost') {
+      const bounds = field.current?.querySelector(`[data-cell="${row}-${column}"]`)?.getBoundingClientRect();
+      if (bounds && stage.current) {
+        stage.current.style.setProperty('--blast-x', `${bounds.left + bounds.width / 2}px`);
+        stage.current.style.setProperty('--blast-y', `${bounds.top + bounds.height / 2}px`);
+      }
+    }
+    if (next.status === 'won' || next.status === 'lost') sound.play(next.status);
     const pending = submitWinningMove(game, next);
     if (!pending) return;
 
@@ -80,36 +92,36 @@ export function Board() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-[90rem] px-3 py-5 sm:px-8 lg:flex lg:flex-1 lg:flex-col" aria-label="Tabuleiro de Campo Minado">
+    <section ref={stage} className="mx-auto w-full max-w-[90rem] px-3 py-5 sm:px-8 lg:flex lg:flex-1 lg:flex-col" aria-label="Tabuleiro de Campo Minado">
+      {finished && <div aria-hidden="true" className="outcome-atmosphere" data-outcome={game.status} />}
       <GameControls size={game.size} onSizeChange={startGame} startedAt={game.startedAt} finishedAt={game.finishedAt}
+        won={game.status === 'won'}
+        soundEnabled={sound.enabled} onToggleSound={sound.toggle}
         mines={remainingMines(game.size, game.board)} tool={tool} onToolChange={setTool}
         onRestart={() => { startGame(game.size); focusCell(0, 0); }} />
-      <p role="status" className="mt-4 rounded-xl border border-slate-600 bg-slate-800 p-4 text-center font-semibold empty:hidden">
-        {game.status === 'won' && 'Vitória! Você revelou todas as células seguras.'}
-        {game.status === 'lost' && 'Fim de jogo. Você revelou uma mina.'}
-        {submission?.game === game && ` ${submission.message}`}
-      </p>
       <div
         style={{ '--rows': game.board.length, '--cols': game.board[0].length } as CSSProperties}
         className="mt-5 lg:min-h-[calc(var(--rows)*1.5rem+18px)] lg:flex-1 lg:[container-type:size]"
       >
-        <div ref={field} className="mx-auto w-fit max-w-full overflow-x-auto overscroll-x-contain rounded-xl border border-slate-600 bg-[#101e2c] p-1.5 shadow-2xl sm:p-2 lg:[--tile:clamp(1.5rem,min((100cqw_-_18px)/var(--cols),(100cqh_-_18px)/var(--rows)),2.75rem)]" role="grid" aria-label="Campo de minas" aria-describedby={instructionsId}>
+        <div ref={field} className="mx-auto w-fit max-w-full overflow-x-auto overscroll-x-contain rounded-xl border border-slate-600 bg-[#101e2c] p-1.5 shadow-2xl sm:p-2 lg:[--tile:clamp(1.5rem,min((100cqw_-_20px)/var(--cols),(100cqh_-_20px)/var(--rows)),2.75rem)]" role="grid" aria-label="Campo de minas" aria-describedby={instructionsId}>
           {game.board.map((line, row) => (
             <div className="flex w-max" key={row} role="row">
               {line.map((cell, column) => {
                 const { text, label } = cellDisplay(cell);
+                const detonated = game.detonatedMine?.row === row && game.detonatedMine.column === column;
                 const tile = cell.revealed ? open : raised;
                 const ink = cell.revealed ? numbers[cell.hasMine ? 3 : cell.adjacentMines] : 'text-[#ff9b82]';
                 return (
                   <div key={column} role="gridcell">
                     <button
                       type="button"
+                      data-detonated={detonated || undefined}
                       className={`grid size-9 touch-manipulation select-none place-items-center border p-0 font-display text-xl font-extrabold leading-none focus-visible:relative focus-visible:z-10 focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-arcade-amber lg:size-(--tile) ${tile} ${ink} ${finished || cell.revealed ? 'cursor-default' : 'cursor-pointer'}`}
                       aria-disabled={finished}
                       data-cell={`${row}-${column}`}
                       tabIndex={row === activeCell.row && column === activeCell.column ? 0 : -1}
                       onFocus={() => setActiveCell({ row, column })}
-                      aria-label={`Linha ${row + 1}, coluna ${column + 1}, ${label}`}
+                      aria-label={`Linha ${row + 1}, coluna ${column + 1}, ${detonated ? 'mina detonada' : label}`}
                       onClick={() => move(tool, row, column)}
                       onContextMenu={event => {
                         event.preventDefault();
@@ -126,7 +138,12 @@ export function Board() {
           ))}
         </div>
       </div>
-      <p id={instructionsId} className="mt-4 text-center text-sm leading-relaxed text-slate-300">
+      <p role="status" className="mt-4 text-center font-semibold text-ivory empty:hidden">
+        {game.status === 'won' && 'Vitória! Você revelou todas as células seguras.'}
+        {game.status === 'lost' && 'Fim de jogo. Você revelou uma mina.'}
+        {submission?.game === game && ` ${submission.message}`}
+      </p>
+      <p id={instructionsId} hidden={finished} className="mt-4 text-center text-sm leading-relaxed text-slate-300">
         <span className="pointer-coarse:hidden">Setas para navegar · Enter ou Espaço para revelar · F ou botão direito para marcar</span>
         <span className="hidden pointer-coarse:inline">Escolha Revelar ou Marcar e toque em uma célula.</span>
       </p>

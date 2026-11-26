@@ -1,4 +1,4 @@
-import { Flag, MousePointer2, RotateCcw } from 'lucide-react';
+import { Flag, MousePointer2, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import type { BoardSize } from '@/lib/minesweeper/board';
 import { SizeSelector } from './size-selector';
 import { Timer } from './timer';
@@ -15,6 +15,9 @@ interface GameControlsProps {
   onSizeChange: (size: BoardSize) => void;
   startedAt: number | null;
   finishedAt: number | null;
+  won: boolean;
+  soundEnabled: boolean;
+  onToggleSound: () => void;
   mines: number;
   tool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -23,14 +26,15 @@ interface GameControlsProps {
 
 const counter = 'flex min-h-11 min-w-20 items-center justify-center rounded-lg border border-slate-600 bg-midnight px-3 font-mono text-xl font-bold tabular-nums text-ivory';
 
-export function GameControls({ size, onSizeChange, startedAt, finishedAt, mines, tool, onToolChange, onRestart }: GameControlsProps) {
+export function GameControls({ size, onSizeChange, startedAt, finishedAt, won, mines, tool, onToolChange, onRestart, soundEnabled, onToggleSound }: GameControlsProps) {
+  const SoundIcon = soundEnabled ? Volume2 : VolumeX;
   return (
     <div className="flex flex-wrap items-end justify-center gap-x-5 gap-y-3 rounded-2xl border border-slate-600/80 bg-slate-900/90 p-4 shadow-xl sm:justify-between">
       <SizeSelector size={size} onChange={onSizeChange} />
       <dl className="flex gap-3 text-center">
         <div>
           <dt className="mb-1 text-xs font-semibold text-slate-300">Tempo</dt>
-          <dd className={counter}><Timer startedAt={startedAt} finishedAt={finishedAt} /></dd>
+          <dd className={counter} data-winning-time={won || undefined}><Timer startedAt={startedAt} finishedAt={finishedAt} /></dd>
         </div>
         <div>
           <dt className="mb-1 text-xs font-semibold text-slate-300">Minas restantes</dt>
@@ -47,6 +51,10 @@ export function GameControls({ size, onSizeChange, startedAt, finishedAt, mines,
       </div>
       <button type="button" onClick={onRestart} className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border-slate-500 bg-slate-700 px-4 text-sm font-semibold hover:bg-slate-600 focus-visible:outline-arcade-amber">
         <RotateCcw aria-hidden="true" className="size-4" />Nova partida
+      </button>
+      <button type="button" aria-pressed={soundEnabled} onClick={onToggleSound}
+        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border-slate-500 px-3 text-sm font-semibold hover:bg-slate-700 focus-visible:outline-arcade-amber aria-pressed:text-arcade-amber">
+        <SoundIcon aria-hidden="true" className="size-4" />Som
       </button>
     </div>
   );

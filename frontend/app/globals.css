@@ -2,6 +2,81 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+[data-detonated] {
+  position: relative;
+  background: #ffad98;
+  box-shadow: inset 0 0 0 2px #983525;
+}
+
+[data-winning-time] {
+  color: var(--color-arcade-amber);
+  border-color: currentColor;
+}
+
+.outcome-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: clip;
+  pointer-events: none;
+  --glow: 215 81 50;
+  background: radial-gradient(ellipse at center, transparent 42%, rgb(var(--glow) / .24) 100%);
+}
+
+.outcome-atmosphere[data-outcome='won'] {
+  --glow: 247 177 43;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .outcome-atmosphere { animation: settle-atmosphere 650ms ease-out; }
+
+  .outcome-atmosphere::before {
+    content: '';
+    position: absolute;
+    width: 200vmax;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .outcome-atmosphere[data-outcome='lost']::before {
+    left: var(--blast-x, 50%);
+    top: var(--blast-y, 50%);
+    background: radial-gradient(circle closest-side, transparent 46%, #602a2640 64%, #ff9d574d 75%, #ffd39b66 77%, transparent 80%);
+    animation: blast-wave 780ms cubic-bezier(.17,.65,.28,1) both;
+  }
+
+  .outcome-atmosphere[data-outcome='won']::before {
+    left: 50%;
+    top: 110%;
+    background: radial-gradient(ellipse closest-side, #ffc34d40, #ffdca31f 50%, transparent 76%);
+    animation: victory-dawn 1.2s ease-out both;
+  }
+
+  [data-winning-time] { animation: victory-glow 600ms ease-out; }
+}
+
+@keyframes settle-atmosphere {
+  from { background-color: transparent; }
+  35% { background-color: rgb(var(--glow) / .1); }
+  to { background-color: transparent; }
+}
+
+@keyframes blast-wave {
+  from { transform: translate(-50%, -50%) scale(.015); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.25); opacity: 0; }
+}
+
+@keyframes victory-dawn {
+  from { transform: translate(-50%, -20%); opacity: 0; }
+  35% { opacity: 1; }
+  to { transform: translate(-50%, -75%); opacity: 0; }
+}
+
+@keyframes victory-glow {
+  40% { box-shadow: 0 0 1rem #ffb41477; }
+}
+
 @font-face {
   font-family: 'Bricolage Grotesque';
   src: local('Bricolage Grotesque ExtraBold'), url('https://cdn.jsdelivr.net/npm/@fontsource-variable/bricolage-grotesque@5/files/bricolage-grotesque-latin-wght-normal.woff2') format('woff2');
