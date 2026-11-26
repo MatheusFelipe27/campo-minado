@@ -2,7 +2,26 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: local('Bricolage Grotesque ExtraBold'), url('https://cdn.jsdelivr.net/npm/@fontsource-variable/bricolage-grotesque@5/files/bricolage-grotesque-latin-wght-normal.woff2') format('woff2');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Inter;
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource-variable/inter@5/files/inter-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 @theme inline {
+  --font-display: 'Bricolage Grotesque', Inter, system-ui, sans-serif;
+  --font-interface: Inter, system-ui, sans-serif;
+  --color-midnight: #091424;
+  --color-ivory: #fff0d9;
+  --color-arcade-amber: #ffb414;
   --color-background: var(--color-white);
   --color-foreground: var(--color-neutral-950);
   --color-card: var(--color-white);
