@@ -7,6 +7,7 @@ import styles from './board.module.css';
 import { SizeSelector } from './size-selector';
 import { Timer } from './timer';
 import { remainingMines } from '../../lib/minesweeper/flag';
+import { submitWinningMove } from '../../lib/winning-score';
 
 function cellDisplay(cell: Cell) {
   if (cell.flagged) return { text: '⚑', label: 'com bandeira' };
@@ -18,10 +19,23 @@ function cellDisplay(cell: Cell) {
 
 export function Board() {
   const [game, setGame] = useState(() => createGame('9x9'));
+  const [submission, setSubmission] = useState<{ game: typeof game; message: string } | null>(null);
   const finished = game.status === 'won' || game.status === 'lost';
 
   function move(type: 'flag' | 'reveal', row: number, column: number) {
-    setGame(playMove(game, { type, position: { row, column } }, Math.random, performance.now()));
+    const next = playMove(game, { type, position: { row, column } }, Math.random, performance.now());
+    setGame(next);
+    const pending = submitWinningMove(game, next);
+    if (!pending) return;
+
+    setSubmission({ game: next, message: 'Salvando pontuação…' });
+    function showResult(message: string) {
+      setSubmission(current => current?.game === next ? { game: next, message } : current);
+    }
+    void pending.then(
+      () => showResult('Pontuação salva.'),
+      (error: unknown) => showResult(error instanceof Error ? error.message : 'Falha ao salvar a pontuação.'),
+    );
   }
 
   return (
@@ -62,6 +76,7 @@ export function Board() {
       <p role="status">
         {game.status === 'won' && 'Vitória! Você revelou todas as células seguras.'}
         {game.status === 'lost' && 'Fim de jogo. Você revelou uma mina.'}
+        {submission?.game === game && ` ${submission.message}`}
       </p>
       {finished && (
         <button type="button" onClick={() => setGame(createGame(game.size))}>Jogar novamente</button>
