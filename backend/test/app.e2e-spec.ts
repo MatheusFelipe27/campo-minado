@@ -62,6 +62,76 @@ describe('Acesso à API', () => {
     await request(app.getHttpServer()).get('/users/me').set('Authorization', `Bearer ${token}`).expect(401);
   });
 
+  describe('GET /scores/ranking', () => {
+    const early = new Date('2026-01-01T12:00:00Z');
+    const late = new Date('2026-01-01T13:00:00Z');
+    const ana = { id: randomUUID(), name: 'Ana', image: null };
+    const bia = { id: randomUUID(), name: 'Bia', image: 'https://example.com/bia.png' };
+
+    beforeAll(async () => {
+      const db = app.get(DataSource);
+      await db.getRepository(User).insert([ana, bia].map(player => ({
+        ...player, email: `${player.id}@example.com`, provider: 'github', providerAccountId: player.id,
+      })));
+
+      const [lowerId, higherId] = [randomUUID(), randomUUID()].sort();
+      const scores = db.getRepository(Score);
+      await scores.insert([
+        { userId: bia.id, boardSize: '30x16', timeSeconds: 90, createdAt: early },
+        ...Array.from({ length: 27 }, (_, i) => ({
+          userId: ana.id, boardSize: '9x9' as const, timeSeconds: 30 - i, createdAt: early,
+        })),
+        { userId: ana.id, boardSize: '9x9', timeSeconds: 3, createdAt: late },
+        { id: higherId, userId: bia.id, boardSize: '9x9', timeSeconds: 3, createdAt: early },
+        { id: lowerId, userId: ana.id, boardSize: '9x9', timeSeconds: 3, createdAt: early },
+      ]);
+    });
+
+    afterAll(async () => {
+      await app.get(DataSource).getRepository(User).delete([ana.id, bia.id]);
+    });
+
+    function ranking() {
+      return request(app.getHttpServer()).get('/scores/ranking')
+        .set('Authorization', `Bearer ${testAccessToken(accountId)}`);
+    }
+
+    it('exige autenticação para consultar o ranking', async () => {
+      await request(app.getHttpServer()).get('/scores/ranking').expect(401);
+    });
+
+    it('retorna os 30 menores tempos globais em ordem crescente', async () => {
+      const { body } = await ranking().expect(200);
+      expect(body.map((entry: { timeSeconds: number }) => entry.timeSeconds)).toEqual([
+        3, 3, 3, ...Array.from({ length: 27 }, (_, i) => i + 4),
+      ]);
+    });
+
+    it('desempata por data e depois por UUID e expõe apenas os campos públicos', async () => {
+      const { body } = await ranking().expect(200);
+      const tiedScore = { boardSize: '9x9', timeSeconds: 3, createdAt: early.toISOString() };
+      expect(body.slice(0, 3)).toEqual([
+        { ...tiedScore, userName: ana.name, userImage: ana.image },
+        { ...tiedScore, userName: bia.name, userImage: bia.image },
+        { ...tiedScore, userName: ana.name, userImage: ana.image, createdAt: late.toISOString() },
+      ]);
+    });
+
+    it('filtra antes do limite e encontra o score avançado fora do Top 30 global', async () => {
+      await ranking().query({ boardSize: '30x16' }).expect(200, [{
+        userName: bia.name, userImage: bia.image, boardSize: '30x16', timeSeconds: 90, createdAt: early.toISOString(),
+      }]);
+    });
+
+    it('retorna lista vazia para tamanho válido sem pontuações', async () => {
+      await ranking().query({ boardSize: '16x16' }).expect(200, []);
+    });
+
+    it('rejeita um tamanho desconhecido', async () => {
+      await ranking().query({ boardSize: '10x10' }).expect(400);
+    });
+  });
+
   describe('POST /scores', () => {
     let playerAccount: string;
 
