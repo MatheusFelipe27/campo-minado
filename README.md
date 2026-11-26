@@ -1,8 +1,10 @@
 # Campo Minado
 
-Jogo de Campo Minado em TypeScript com login pelo GitHub e ranking global por tempo. O navegador executa a partida. Ao revelar a última célula segura, o jogo envia o tamanho do campo e o tempo final à API. O resultado fica disponível no ranking, inclusive depois de sair e entrar novamente.
+Campo Minado com três dificuldades, login pelo GitHub e controles por mouse, teclado ou toque. Cada vitória salva o tempo no PostgreSQL. O **Ranking geral** reúne as 30 partidas mais rápidas e **Meus melhores tempos** mostra o recorde do jogador em cada dificuldade concluída.
 
 **Stack:** Next.js 15 (App Router), React 19, NextAuth, Tailwind CSS e shadcn/ui no frontend. NestJS 11, TypeORM e PostgreSQL 16 no backend. Os dois projetos usam TypeScript em modo `strict`.
+
+Para jogar localmente, configure o OAuth uma vez e suba os três serviços com Docker Compose. Para avaliar as regras do jogo e o contrato HTTP, as duas suítes de testes podem ser executadas diretamente, sem credenciais do GitHub.
 
 [Executar localmente](#executar-localmente) · [Como jogar](#como-jogar) · [Testes](#testes) · [Contrato da API](#contrato-da-api) · [Diferenciais](#diferenciais)
 
@@ -42,7 +44,7 @@ cp frontend/.env.example frontend/.env.local
 
 ### 2. Configurar o login pelo GitHub
 
-Cadastre uma OAuth App com **Homepage URL** igual a `http://localhost:3000` e **Authorization callback URL** igual a `http://localhost:3000/api/auth/callback/github`. Copie o **Client ID** e gere um **Client secret** na página da aplicação. [Criar OAuth App no GitHub](https://github.com/settings/applications/new)
+Quem prepara o ambiente local cadastra uma OAuth App uma única vez. Use `http://localhost:3000` como **Homepage URL** e `http://localhost:3000/api/auth/callback/github` como **Authorization callback URL**. Copie o **Client ID** para `GITHUB_ID` e o **Client secret** para `GITHUB_SECRET` em `frontend/.env.local`. Depois disso, cada jogador usa o botão **Entrar com GitHub** com a própria conta. [Criar OAuth App no GitHub](https://github.com/settings/applications/new)
 
 Gere **duas chaves independentes** executando o comando abaixo duas vezes. Use o primeiro valor em `NEXTAUTH_SECRET`. Use o segundo em `API_JWT_SECRET` nos dois arquivos locais.
 
@@ -59,7 +61,7 @@ node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"
 | `NEXT_PUBLIC_API_URL` | `frontend/.env.local` | `http://localhost:3001`, endereço da API usado pelo navegador |
 | `FRONTEND_URL` | `backend/.env` | `http://localhost:3000`, origem permitida pelo CORS |
 | `PORT` | `backend/.env` | `3001` |
-| `DATABASE_URL` | `backend/.env` | A URL do exemplo já corresponde ao serviço local `postgres`, na porta `5432` |
+| `DATABASE_URL` | `backend/.env` | A API executada com npm usa `localhost:5432`. No Compose, a conexão usa `postgres:5432` pela rede dos contêineres. |
 
 Os arquivos com as credenciais locais são ignorados pelo Git. Os modelos versionados estão em [frontend/.env.example](frontend/.env.example) e [backend/.env.example](backend/.env.example).
 
@@ -73,6 +75,8 @@ docker compose ps
 ```
 
 O backend aguarda o PostgreSQL, aplica as migrations pendentes e inicia a API. O frontend aguarda uma resposta saudável de `/health`. Abra [o jogo](http://localhost:3000), entre com o GitHub e acesse **Ranking**. O volume `postgres_data` conserva os cadastros e as pontuações entre execuções.
+
+Em um banco novo, os rankings começam vazios. Para conferir o fluxo completo, jogue no campo **9×9**, revele todas as células seguras e aguarde **Pontuação salva**. Abra **Ranking** e selecione **Meus melhores tempos** para ver o resultado.
 
 A API usa o endereço interno `postgres:5432`. O navegador usa `http://localhost:3001` para acessar a API. Para personalizar essa URL no Compose, defina `NEXT_PUBLIC_API_URL` no ambiente do terminal antes do build. As chaves de OAuth e de sessão são carregadas dos arquivos locais ao iniciar os contêineres.
 
@@ -137,8 +141,6 @@ Após uma vitória, aguarde **Pontuação salva** e abra **Ranking**. A página 
 
 **Tempo e confiança no cliente.** O jogo mede a duração pela diferença entre os instantes da primeira revelação e do fim da partida. O envio ocorre na transição para vitória e usa uma sessão atualizada. A API exige segundos inteiros positivos e aplica os mínimos da tabela. Esse anti-cheat detecta tempos incompatíveis com a dificuldade; a simulação do tabuleiro acontece no navegador. Se a resposta de uma gravação se perder, a interface informa a falha de confirmação e evita repetir automaticamente um envio que pode já ter sido aceito.
 
-Na página de ranking, selecione **Meus melhores tempos** para consultar sua vitória mais rápida em cada dificuldade concluída. A opção **Ranking geral** volta ao Top 30 com o filtro de tamanho que você escolheu.
-
 ## Contrato da API
 
 Abra a [documentação interativa do Swagger](http://localhost:3001/docs) para consultar os campos, filtros e respostas das rotas da API. O contrato também está disponível em [formato OpenAPI JSON](http://localhost:3001/docs-json).
@@ -169,12 +171,13 @@ Cada jogador pode fazer até 5 tentativas de `POST /scores` por minuto. Ao exced
 
 ## Testes
 
-Com as dependências instaladas, você pode executar as duas suítes sem login no GitHub. Comece cada bloco em um terminal aberto na **raiz do repositório**.
+Comece cada bloco em um terminal aberto na **raiz do repositório**. Em um clone novo, `npm ci` instala as dependências da respectiva pasta. Se elas já estiverem instaladas, siga direto para o comando de teste. O Vitest roda sem serviços externos. A suíte e2e precisa apenas do PostgreSQL de testes e usa sua própria configuração de ambiente.
 
 **Frontend** — entre na pasta do jogo e rode o Vitest.
 
 ```sh
 cd frontend
+npm ci
 npm test
 ```
 
@@ -183,6 +186,7 @@ npm test
 ```sh
 docker compose up -d --wait postgres-test
 cd backend
+npm ci
 npm run test:e2e
 ```
 
@@ -199,6 +203,7 @@ No terminal do **frontend**, dentro de `frontend/`, o ESLint verifica páginas, 
 
 ```sh
 npm run lint
+npm exec -- next typegen
 npm run typecheck
 npm run build
 ```
@@ -211,8 +216,6 @@ npm run build
 ```
 
 ## Diferenciais
-
-**Já disponíveis**
 
 - Docker Compose para iniciar PostgreSQL, API e frontend, com migrations automáticas e imagens de aplicação executadas como usuário sem privilégios.
 - Swagger UI com autenticação Bearer e contrato OpenAPI gerado a partir dos controllers e DTOs.
